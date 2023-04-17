@@ -1,13 +1,11 @@
-
 Parameters:
-  BucketName: celebritybucket
+  BucketName:
     Type: String
     Default: grantp-s3-events-input-bucket
 
 Resources:
-
   # Input bucket
-  # We want items uploaded here to trigger the Lamba function
+  # We want items uploaded here to trigger the Lambda function
   InputBucket:
     Type: AWS::S3::Bucket
     DependsOn:
@@ -30,11 +28,11 @@ Resources:
       SourceArn: !Sub 'arn:aws:s3:::${BucketName}'
       SourceAccount: !Ref AWS::AccountId
     
-  # Role for the Lambda Fuction
+  # Role for the Lambda function
   TriggerFunctionExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      # Trust Policy - let Lambda become the role
+      # Trust Policy - let Lambda assume the role
       AssumeRolePolicyDocument: 
         Version: '2012-10-17'
         Statement:
@@ -70,48 +68,45 @@ Resources:
       Code:
         ZipFile: |
           import boto3
-import json
+          import json
 
-s3 = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb')
-rekognition = boto3.client('rekognition')
+          s3 = boto3.client('s3')
+          dynamodb = boto3.resource('dynamodb')
+          rekognition = boto3.client('rekognition')
 
-def lambda_handler(event, context):
-    for record in event['Records']:
-        # Get the S3 bucket and key where the object was uploaded
-        bucket = record['s3']['bucket']['name']
-        key = record['s3']['object']['key']
+          def lambda_handler(event, context):
+              for record in event['Records']:
+                  # Get the S3 bucket and key where the object was uploaded
+                  bucket = record['s3']['bucket']['name']
+                  key = record['s3']['object']['key']
 
-        # Analyze the picture with Amazon Rekognition
-        response = rekognition.recognize_celebrities(
-            Image={'S3Object': {'Bucket': bucket, 'Name': key}}
-        )
+                  # Analyze the picture with Amazon Rekognition
+                  response = rekognition.recognize_celebrities(
+                      Image={'S3Object': {'Bucket': bucket, 'Name': key}}
+                  )
 
-        # Get the list of detected celebrities
-        celebrities = []
-        for celebrity in response['CelebrityFaces']:
-            celebrities.append(celebrity['Name'])
+                  # Get the list of detected celebrities
+                  celebrities = []
+                  for celebrity in response['CelebrityFaces']:
+                      celebrities.append(celebrity['Name'])
 
-        # Store the results in DynamoDB
-        table = dynamodb.Table('test')
-        table.put_item(
-            Item={
-                'ImageName': key,
-                'detected_celebrities': celebrities,
-                'upload_time': str(record['eventTime'])
-            }
-        )
+                  # Store the results in DynamoDB
+                  table = dynamodb.Table('test')
+                  table.put_item(
+                      Item={
+                          'ImageName': key,
+                          'detected_celebrities': celebrities,
+                          'upload_time': str(record['eventTime'])
+                      }
+                  )
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Picture analysis complete.')
-    }
-      Handler: index.handle_s3_event
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('Picture analysis complete.')
+              }
+      Handler: index.lambda_handler
       Role: !GetAtt TriggerFunctionExecutionRole.Arn
       Runtime: python3.9
         
 Outputs:
-    InputBucket:
-      Value: !Ref InputBucket
-    TriggerFunction:
-      Value: !Ref TriggerFunction
+  InputBucket
