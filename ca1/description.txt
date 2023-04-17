@@ -1,0 +1,8 @@
+As part of the CA1 Cloud Technologies project, I was tasked with designing and implementing a suite of cloud services on AWS for a provided case study. The primary objective was to leverage Amazon Rekognition, an advanced image and video analysis service, to detect celebrities' pictures and store their details in DynamoDB.
+
+To accomplish this task, I relied on a variety of resources, including the GitHub repository located at https://github.com/peadargrant/cloud_technologies and the official AWS documentation for Rekognition at https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/ex-lambda.html
+
+After completing the development work, I tested the code to ensure that it met the necessary requirements. It is worth noting that the code was only tested and validated on my AWS environment and was not verified on PowerShell.
+
+
+regards Kian Harding (ID: D00241144)
